@@ -287,6 +287,7 @@ body.create-mode #app>.page{background:rgba(2,5,3,.82)}
       <button class="ccard" data-cr="acc"><div class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></div><b>UGC accessory</b><span>Upload a GLB model and place it on the avatar.</span></button>
       <button class="ccard hidden" id="crOwn" data-cr="own"><div class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/></svg></div><b>Owner tools</b><span>Give badges and Bonds to players.</span></button>
       <button class="ccard hidden" id="crGames" data-cr="games"><div class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="10" rx="4"/><path d="M8 11v4M6 13h4"/><circle cx="16" cy="12" r="1"/><circle cx="18" cy="14" r="1"/></svg></div><b>Manage games</b><span>Edit any game's icon, thumbnail, description, owner and more.</span></button>
+      <button class="ccard hidden" id="crItems" data-cr="items"><div class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l8-4 8 4v10l-8 4-8-4z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg></div><b>Manage items</b><span>Edit any face or accessory: name, price, looks, description and owner.</span></button>
       <button class="ccard" disabled><div class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4l-5 3 2 4 3-1v10h8V10l3 1 2-4-5-3a4 4 0 0 1-8 0z"/></svg></div><b>Clothing</b><span>Shirts and pants. Coming soon.</span></button>
     </div>
     <div id="ownPanel">
@@ -337,6 +338,33 @@ body.create-mode #app>.page{background:rgba(2,5,3,.82)}
           <div style="display:flex;gap:8px;margin-top:10px"><button class="primary" id="gSave" style="margin:0;width:auto;padding:10px 22px">Save changes</button><button class="ghost" id="gCancel" type="button">Cancel</button></div>
         </div>
       </div>
+      <div class="cpane hidden" id="cp-items"><button class="ghost cback" data-cr="">← Create</button><h2>Manage items</h2>
+        <div class="panel hidden" id="iLoc" style="border-color:#b7791f"><b>Saving on this device only.</b><p class="muted" style="margin:6px 0 0">The <code>item_overrides</code> table isn't set up in Supabase yet, so item edits are stored in this browser only. Run the SQL setup to make them global.</p></div>
+        <div class="panel" id="iList"><input id="iSearch" placeholder="Search all items (name or ID)…"><div class="plist" id="iRows"></div></div>
+        <div class="panel gform hidden" id="iEd">
+          <h3 id="miTitle" style="margin:0 0 4px">Edit item</h3>
+          <label class="lb">Name</label><input id="miName" maxlength="30">
+          <label class="lb">Description</label><textarea id="miDesc" maxlength="500" style="min-height:90px"></textarea>
+          <div style="display:flex;gap:12px;flex-wrap:wrap"><div style="flex:1;min-width:140px"><label class="lb">Price (0 = Free)</label><input id="miPrice" type="number" min="0" step="1"></div><div style="flex:1;min-width:140px"><label class="lb">Type</label><input id="miType" maxlength="20"></div></div>
+          <label class="lb">Owner / creator (username, or "bounded")</label><input id="miOwner" maxlength="20">
+          <label class="lb" style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="miHide" style="width:auto"> Hidden from catalog</label>
+          <div id="miFaceBox" class="hidden"><label class="lb" style="margin-top:14px;font-weight:700">Look: replace face image</label>
+            <input type="file" id="miFaceFile" accept="image/png,image/webp">
+            <label class="lb" style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="miFaceFade" checked style="width:auto"> Fade the gray nose</label>
+            <label class="lb" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="miFaceWhite" style="width:auto"> Remove white background</label>
+            <div class="lb" style="margin-top:8px">Preview on the rig</div><img id="miFacePrev" alt="" style="width:150px;height:150px;border-radius:10px;border:1px solid var(--border);background:#0b1510"></div>
+          <div id="miAccBox" class="hidden"><label class="lb" style="margin-top:14px;font-weight:700">Look: placement on the avatar</label>
+            <label class="lb">Attach to</label><select id="miPart"><option value="Head">Head</option><option value="Torso">Torso</option><option value="LeftArm">Left arm</option><option value="RightArm">Right arm</option><option value="LeftLeg">Left leg</option><option value="RightLeg">Right leg</option></select>
+            <label class="lb">Size</label><input type="range" id="miS" min="10" max="300" value="100">
+            <label class="lb">Up / down</label><input type="range" id="miU" min="-60" max="60" value="0">
+            <label class="lb">Forward / back</label><input type="range" id="miF" min="-60" max="60" value="0">
+            <label class="lb">Left / right</label><input type="range" id="miSd" min="-60" max="60" value="0">
+            <label class="lb">Turn</label><input type="range" id="miR" min="-180" max="180" value="0">
+            <div class="lb" style="margin-top:8px">Preview</div><img id="miAccPrev" alt="" style="width:180px;height:180px;border-radius:10px;border:1px solid var(--border);background:#0b1510"></div>
+          <div class="err" id="miMsg" style="text-align:left"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="primary" id="miSave" style="margin:0;width:auto;padding:10px 22px">Save changes</button><button class="ghost" id="miCancel" type="button">Cancel</button><button class="ghost danger" id="miReset" type="button" style="margin-left:auto">Reset to original</button></div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="page hidden" id="v-game">
@@ -350,7 +378,7 @@ body.create-mode #app>.page{background:rgba(2,5,3,.82)}
   </div>
   <div class="page hidden" id="v-item"><div class="idetail"><div class="ibox"><div id="iimg"></div><div id="ilive" class="hidden"></div><button class="ghost itry" id="itry">Try On</button></div>
     <div class="iinfo"><h1 id="iname"></h1><p class="muted">By <a id="iby" style="color:var(--accent);cursor:pointer" data-go="Bounded">Bounded</a><span id="ibyb"></span></p><p class="muted" id="idesc"></p><hr style="border:0;border-top:1px solid var(--border);margin:18px 0">
-      <div class="iprice"><span class="muted">Price</span><b id="iprice"></b></div><button class="primary" id="ibtn" style="margin:0"></button></div></div>
+      <div class="iprice"><span class="muted">Price</span><b id="iprice"></b></div><button class="primary" id="ibtn" style="margin:0"></button><button class="ghost hidden" id="iEdit" style="margin:10px 0 0">Edit item (staff)</button></div></div>
     <div class="imeta"><span>Type<b id="itype"></b></span><span>Created<b>Nov 9, 2026</b></span></div><div class="panel hidden" id="iadm"><h3>Admin: edit item</h3><label class="lb">Name</label><input id="ien"><label class="lb" style="margin-top:8px">Description</label><textarea id="ied"></textarea><label class="lb" style="margin-top:8px">Price</label><input id="iep" type="number" min="0"><label class="lb" style="margin-top:8px">Type</label><input id="iet"><label class="lb" style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="ieh" style="width:auto"> Hidden from catalog</label><button class="primary" id="ies" style="width:auto;padding:10px 20px">Save changes</button></div>
     <p><a class="back" style="cursor:pointer;color:var(--accent)" onclick="go('catalog')">← Back to catalog</a></p></div>
   <div class="page hidden" id="v-avatar">
@@ -733,8 +761,9 @@ function accThumb(id,mode){const A=ACC[id];if(!A)return"";const tmp=id[0]==="_",
     snapS.add(o);snapR.render(snapS,cam);url=snapR.domElement.toDataURL();snapS.remove(o)}catch(e){}
   if(!tmp)ATH.set(k,url);return url}
 const mkBase=()=>[{id:"hat",n:5001,name:"Green Bucket Hat",cat:"hats",type:"Hat",price:0,t:99,desc:"A green bucket hat for your avatar.",by:"bounded"},...Object.entries(FACES).filter(([k,f])=>!f.hidden).map(([k,f],i)=>({id:k,n:f.num?6000+f.num:5002+i,name:f.name,cat:"faces",type:"Face",price:0,t:f.num?100+f.num:i+1,desc:"A face for your avatar.",by:f.up?(f.by||"owen"):"bounded"})),...Object.entries(ACCDEF).filter(([k])=>k[0]!=="_").map(([k,d])=>({id:k,n:6000+d.num,name:d.name,cat:"accessories",type:"Accessory",price:0,t:100+d.num,desc:"An accessory for your avatar.",by:d.by||"owen"}))];
+let OV=J("bv_items",{}),OVLOCAL=true;
 let ITEMS=[],ITEM={};
-function loadItems(){const ov=J("bv_items",{});ITEMS=mkBase().map(i=>({...i,...(ov[i.id]||{})}));ITEM=Object.fromEntries(ITEMS.map(i=>[i.id,i]))}loadItems();
+function loadItems(){const ov=OV;ITEMS=mkBase().map(i=>({...i,...(ov[i.id]||{})}));ITEM=Object.fromEntries(ITEMS.map(i=>[i.id,i]))}loadItems();
 const CATS=[["all","All items","grid"],["hats","Hats","hat"],["accessories","Accessories","gem"],["faces","Faces","smile"]];
 const CAT={cat:"all",q:"",sort:"new",own:false};
 const owned=(u,id)=>id==="smile"||(u.owned||[]).includes(id);
@@ -751,7 +780,7 @@ $("pMore").onclick=()=>{const o=$("pBio").classList.toggle("open");$("pMore").te
 $("pfNext").onclick=()=>$("pItems").scrollBy({left:320,behavior:"smooth"});
 function renderCatalog(){const u=users()[session()];if(canUpload(u)){$("badgeBox").classList.toggle("hidden",!isOwner(u));if(isOwner(u))renderBList();renderFList();renderAList()}
   $("ccats").innerHTML=CATS.map(([k,l,e])=>`<button class="${CAT.cat===k?"on":""}" data-cat="${k}">${ic(e)}${l}</button>`).join("");
-  const L=ITEMS.filter(i=>(CAT.cat==="all"||i.cat===CAT.cat)&&i.name.toLowerCase().includes(CAT.q)&&(!CAT.own||owned(u,i.id))&&(!i.hidden||isAdmin(u)));
+  const L=ITEMS.filter(i=>(CAT.cat==="all"||i.cat===CAT.cat)&&i.name.toLowerCase().includes(CAT.q)&&(!CAT.own||owned(u,i.id))&&(!i.hidden||isStaff(u)));
   L.sort(CAT.sort==="az"?(a,b)=>a.name.localeCompare(b.name):CAT.sort==="pl"?(a,b)=>a.price-b.price:CAT.sort==="ph"?(a,b)=>b.price-a.price:(a,b)=>b.t-a.t);
   $("cgrid").innerHTML=L.length?L.map(i=>`<div class="card2 item" data-ig="${i.n}">${tile(i)}<div class="nm">${i.name}</div><div class="muted">${owned(u,i.id)?"Owned":i.price||"Free"}</div></div>`).join(""):'<p class="muted">No items found.</p>'}
 $("cq").oninput=e=>{CAT.q=e.target.value.toLowerCase();renderCatalog()};
@@ -759,11 +788,11 @@ $("csort").onchange=e=>{CAT.sort=e.target.value;renderCatalog()};
 $("cown").onchange=e=>{CAT.own=e.target.checked;renderCatalog()};
 $("ccats").onclick=e=>{const b=e.target.closest("[data-cat]");if(b){CAT.cat=b.dataset.cat;renderCatalog()}};
 let IV=null,tryOn=false,curItem=null;
-function renderItem(id){curItem=ITEMS.find(i=>String(i.n)===id);if(!curItem||(curItem.hidden&&!isAdmin(users()[session()]))){go("catalog");return}tryOn=false;paintItem()}
+function renderItem(id){curItem=ITEMS.find(i=>String(i.n)===id);if(!curItem||(curItem.hidden&&!isStaff(users()[session()]))){go("catalog");return}tryOn=false;paintItem()}
 function paintItem(){const it=curItem,u=users()[session()],own=owned(u,it.id),on=isOn(av(u.avatar),it),face=it.cat==="faces";
   $("iname").textContent=it.name;{const by=(users()[it.by||"bounded"]||{}).name||it.by||"Bounded";$("iby").textContent=by;$("iby").dataset.go=by;$("ibyb").innerHTML=crown(by)}$("idesc").textContent=it.desc;$("itype").textContent=it.type;$("iprice").textContent=it.price||"Free";
   $("ibtn").textContent=!own?(it.price?"Buy":"Get"):on?(face?"Equipped":"Unequip"):"Equip";$("ibtn").disabled=own&&on&&face;
-  $("itry").textContent=tryOn?"View item":"Try On";$("iadm").classList.toggle("hidden",!isAdmin(u));if(isAdmin(u)){$("ien").value=it.name;$("ied").value=it.desc;$("iep").value=it.price;$("iet").value=it.type;$("ieh").checked=!!it.hidden}
+  $("itry").textContent=tryOn?"View item":"Try On";$("iadm").classList.toggle("hidden",!isAdmin(u));$("iEdit").classList.toggle("hidden",!isStaff(u));if(isAdmin(u)){$("ien").value=it.name;$("ied").value=it.desc;$("iep").value=it.price;$("iet").value=it.type;$("ieh").checked=!!it.hidden}
   $("iimg").style.background=`#0b1510 url(${thumb(it,"itemL")}) center/contain no-repeat`;
   $("iimg").classList.toggle("hidden",tryOn);$("ilive").classList.toggle("hidden",!tryOn);
   if(tryOn)try{if(!IV)IV=createViewer($("ilive"),420,440,()=>!$("v-item").classList.contains("hidden")&&!$("app").classList.contains("hidden")&&!$("ilive").classList.contains("hidden"),false);
@@ -774,15 +803,15 @@ $("ibtn").onclick=()=>{const all=users(),u=all[session()],it=curItem,had=owned(u
 
 /* ---- Create tab ---- */
 let CPANE=null;
-function showCpane(k){CPANE=k||null;$("chub").classList.toggle("hidden",!!CPANE);if(CPANE!=="games")GDRAFT=null;["face","acc","own","games"].forEach(x=>$("cp-"+x).classList.toggle("hidden",x!==CPANE));if(CPANE==="games")renderGames();if(CPANE==="acc"&&AV&&PG)try{AV.start()}catch(e){}}
-function renderCreate(u){const ow=isOwner(u),st=isStaff(u);$("crGames").classList.toggle("hidden",!st);if(CPANE==="games"&&!st)CPANE=null;const ow0=ow;$("crOwn").classList.toggle("hidden",!ow);if(CPANE==="own"&&!ow)CPANE=null;$("badgeBox").classList.toggle("hidden",!ow);if(ow)renderBList();renderFList();renderAList();showCpane(CPANE)}
+function showCpane(k){CPANE=k||null;$("chub").classList.toggle("hidden",!!CPANE);if(CPANE!=="games")GDRAFT=null;if(CPANE!=="items"&&MID)closeMI();["face","acc","own","games","items"].forEach(x=>$("cp-"+x).classList.toggle("hidden",x!==CPANE));if(CPANE==="games")renderGames();if(CPANE==="items")renderMI();if(CPANE==="acc"&&AV&&PG)try{AV.start()}catch(e){}}
+function renderCreate(u){const ow=isOwner(u),st=isStaff(u);$("crGames").classList.toggle("hidden",!st);$("crItems").classList.toggle("hidden",!st);if((CPANE==="games"||CPANE==="items")&&!st)CPANE=null;const ow0=ow;$("crOwn").classList.toggle("hidden",!ow);if(CPANE==="own"&&!ow)CPANE=null;$("badgeBox").classList.toggle("hidden",!ow);if(ow)renderBList();renderFList();renderAList();showCpane(CPANE)}
 $("crBtn").onclick=()=>go("create");
 $("v-create").addEventListener("click",e=>{const b=e.target.closest("[data-cr]");if(b&&!b.disabled)showCpane(b.dataset.cr)});
 $("catBtn").onclick=()=>go("catalog");$("homeBtn").onclick=()=>go("home");$("profBtn").onclick=()=>$("me").onclick();
 let ICAT="all";
 function renderItems(){const u=users()[session()],q=($("itemQ").value||"").toLowerCase();
   $("itemCats").innerHTML=CATS.map(([k,l])=>chip(k,k===ICAT,"icat",l)).join("");
-  const L=ITEMS.filter(i=>(ICAT==="all"||i.cat===ICAT)&&i.name.toLowerCase().includes(q)&&(!i.hidden||isAdmin(u)));
+  const L=ITEMS.filter(i=>(ICAT==="all"||i.cat===ICAT)&&i.name.toLowerCase().includes(q)&&(!i.hidden||isStaff(u)));
   $("itemGrid").innerHTML=L.length?L.map(i=>{const own=owned(u,i.id),on=isOn(ED,i),face=i.cat==="faces";
     return `<div class="card2 item">${tile(i)}<div class="nm">${esc(i.name)}</div>${own?(on&&face?'<button class="ghost" disabled>Equipped</button>':`<button class="${on?"ghost":"primary"}" data-item="${i.id}">${on?"Unequip":"Equip"}</button>`):`<button class="ghost" data-go2="item-${i.n}">Get</button>`}</div>`}).join(""):'<p class="muted">No items found.</p>'}
 $("itemQ").oninput=renderItems;
@@ -931,7 +960,7 @@ async function loadFaces0(){const r=await sb.from("faces").select("*").order("id
   const rows=r.data||[];for(const k in ACCDEF)if(k[0]!=="_")delete ACCDEF[k];
   await Promise.all(rows.map(f=>f.data&&f.data.startsWith("glb1:")?loadAcc(f):new Promise(res=>{const k="u"+f.id,im=new Image();im.onload=im.onerror=()=>{FIMG[k]=im;res()};im.src=f.data;FACES[k]={name:f.name,img:f.data,up:1,num:f.id,by:(f.uploader||"owen").toLowerCase()}})));
   for(const k in ACC)if(k[0]!=="_"&&!rows.some(f=>"g"+f.id===k))delete ACC[k];
-  loadItems();SNAP.clear();ATH.clear();for(const k in HTEX)delete HTEX[k];return true}
+  await loadOv();await applyLooks();loadItems();SNAP.clear();ATH.clear();for(const k in HTEX)delete HTEX[k];return true}
 let PF="",PFID=null,PN=0;
 const updUp=()=>{$("fUp").disabled=!(PF&&$("fName").value.trim())};
 function procFace(){const f=$("fFile").files[0];PF="";updUp();if(!f)return;const rd=new FileReader();
@@ -1295,6 +1324,75 @@ $("gSave").onclick=async()=>{const me=users()[session()];if(!isStaff(me)||!GDRAF
   const g={...GDRAFT,name:name.slice(0,40),descr:$("gDesc").value.trim().slice(0,1000),owner:ow.name,genre:$("gGenre").value.trim().slice(0,24),max:Math.min(500,Math.max(0,parseInt($("gMax").value)||0)),tags:$("gTags").value.trim().slice(0,80),pub:$("gPub").checked,play:$("gPlay").checked};
   const B=$("gSave");B.disabled=true;msg("gMsg","Saving…",1);
   try{if(await saveGame(g)){toast("Game saved");GDRAFT=null;msg("gMsg","");renderGames()}}finally{B.disabled=false}};
+
+/* ===== Staff item editor (faces, accessories, prices, looks, owners) ===== */
+let MID=null,MQ=0;
+const loadImg=src=>new Promise(res=>{const im=new Image();im.onload=im.onerror=()=>res(im);im.src=src});
+async function loadOv(){let rows=null;
+  try{const r=await sb.from("item_overrides").select("*");if(!r.error)rows=r.data||[]}catch(e){}
+  OVLOCAL=rows===null;
+  if(OVLOCAL){OV=J("bv_items",{});return}
+  OV={};rows.forEach(r=>{const o={};if(r.name!=null)o.name=r.name;if(r.descr!=null)o.desc=r.descr;if(r.price!=null)o.price=+r.price;if(r.type!=null)o.type=r.type;if(r.hidden!=null)o.hidden=!!r.hidden;if(r.owner)o.by=r.owner;
+    if(r.look){try{o.look=JSON.parse(r.look)}catch(e){}}OV[r.id]=o})}
+async function applyLooks(){const jobs=[];
+  for(const k in FACES){if(k[0]==="_")continue;const F=FACES[k],o=OV[k]||{};
+    if(F.__n===undefined){F.__n=F.name;F.__b=F.by;F.__im=FIMG[k]}
+    F.name=o.name||F.__n;if(F.up)F.by=String(o.by||F.__b||"owen").toLowerCase();
+    if(!F.draw){if(o.look&&o.look.img){F.img=o.look.img;jobs.push(loadImg(o.look.img).then(im=>{FIMG[k]=im}))}else if(F.__im)FIMG[k]=F.__im}}
+  for(const k in ACCDEF){if(k[0]==="_")continue;const D=ACCDEF[k],o=OV[k]||{};
+    if(D.__n===undefined){D.__n=D.name;D.__b=D.by;D.__p=D.p}
+    D.name=o.name||D.__n;D.by=String(o.by||D.__b||"owen").toLowerCase();D.p=o.look&&o.look.p?normP(o.look.p):D.__p}
+  await Promise.all(jobs);
+  for(const k in FACETEX)delete FACETEX[k];for(const k in HTEX)delete HTEX[k];SNAP.clear();ATH.clear()}
+async function saveOv(id,o){const me=users()[session()];if(!isStaff(me))return false;
+  if(!OVLOCAL){const r=await sb.from("item_overrides").upsert({id,name:o.name,descr:o.desc,price:o.price,type:o.type,hidden:!!o.hidden,owner:o.by,look:o.look?JSON.stringify(o.look):null,updated_by:me.name,updated_at:new Date().toISOString()});
+    if(r.error){msg("miMsg","Couldn't save: "+r.error.message);return false}}
+  else{const l=J("bv_items",{});l[id]=o;store.set("bv_items",JSON.stringify(l))}
+  await loadFaces(true);return true}
+async function delOv(id){const me=users()[session()];if(!isStaff(me))return false;
+  if(!OVLOCAL){const r=await sb.from("item_overrides").delete().eq("id",id);if(r.error){msg("miMsg","Couldn't reset: "+r.error.message);return false}}
+  else{const l=J("bv_items",{});delete l[id];store.set("bv_items",JSON.stringify(l))}
+  await loadFaces(true);return true}
+function renderMI(){const u=users()[session()];if(!isStaff(u))return;
+  $("iLoc").classList.toggle("hidden",!OVLOCAL);$("iList").classList.toggle("hidden",!!MID);$("iEd").classList.toggle("hidden",!MID);if(MID)return;
+  const q=$("iSearch").value.trim().toLowerCase(),L=ITEMS.filter(i=>!q||i.name.toLowerCase().includes(q)||String(i.n)===q);
+  $("iRows").innerHTML=L.length?L.map(i=>`<div class="prow" style="cursor:default"><div class="gthumb" style="width:48px;height:48px;background:#0b1510 url(${thumb(i)}) center/cover"></div><div class="pn"><b>${esc(i.name)}</b><span class="muted">ID ${i.n} · ${esc(i.type)} · ${i.price?i.price+" Bonds":"Free"} · by ${esc(i.by||"bounded")}${i.hidden?" · Hidden":""}${OV[i.id]?" · Edited":""}</span></div><button class="ghost" data-miedit="${esc(i.id)}">Edit</button></div>`).join(""):'<p class="muted">No items found.</p>'}
+$("iSearch").oninput=renderMI;
+$("iRows").addEventListener("click",e=>{const b=e.target.closest("[data-miedit]");if(b)openMI(b.dataset.miedit)});
+const MPL=()=>({part:$("miPart").value,s:$("miS").value/100,f:$("miF").value/10,u:$("miU").value/10,sd:$("miSd").value/10,ry:+$("miR").value});
+function openMI(id){const i=ITEM[id];if(!i)return;closeMI();const D=ACCDEF[id],F=FACES[id];
+  MID={id,face:i.cat==="faces"&&!!F&&!F.draw,acc:i.cat==="accessories"&&!!D,orig:D?{...D.p}:null,p:D?{...D.p}:null,img:null,tmp:null,file:null};
+  $("miTitle").textContent="Edit "+i.name;$("miName").value=i.name;$("miDesc").value=i.desc||"";$("miPrice").value=i.price||0;$("miType").value=i.type||"";$("miOwner").value=i.by||"bounded";$("miHide").checked=!!i.hidden;
+  $("miFaceBox").classList.toggle("hidden",!MID.face);$("miAccBox").classList.toggle("hidden",!MID.acc);$("miFaceFile").value="";msg("miMsg","");
+  $("miReset").classList.toggle("hidden",!OV[id]);
+  if(MID.face)$("miFacePrev").src=thumb(i);
+  if(MID.acc){const p=D.p;$("miPart").value=p.part;$("miS").value=Math.round(p.s*100);$("miF").value=Math.round(p.f*10);$("miU").value=Math.round(p.u*10);$("miSd").value=Math.round(p.sd*10);$("miR").value=Math.round(p.ry);$("miAccPrev").src=accThumb(id,"item")}
+  renderMI()}
+function closeMI(){if(!MID)return;if(MID.tmp)delete FACES[MID.tmp];if(MID.acc&&ACCDEF[MID.id]&&MID.orig){ACCDEF[MID.id].p=MID.orig;ATH.clear();SNAP.clear()}MID=null}
+["miPart","miS","miU","miF","miSd","miR"].forEach(i=>{const f=()=>{if(!MID||!MID.acc)return;const p=normP(MPL());MID.p=p;ACCDEF[MID.id].p=p;ATH.clear();SNAP.clear();$("miAccPrev").src=accThumb(MID.id,"item")};$(i).addEventListener("input",f);$(i).addEventListener("change",f)});
+function faceFromFile(f,fade,white){return new Promise((res,rej)=>{const rd=new FileReader();rd.onerror=()=>rej(new Error("Couldn't read that file."));
+  rd.onload=()=>{const im=new Image();im.onerror=()=>rej(new Error("That file is not a readable image."));
+    im.onload=()=>{const c=document.createElement("canvas");c.width=c.height=512;const x=c.getContext("2d"),k=Math.min(512/im.width,512/im.height);
+      x.drawImage(im,(512-im.width*k)/2,(512-im.height*k)/2,im.width*k,im.height*k);const d=x.getImageData(0,0,512,512),p=d.data;
+      for(let i=0;i<p.length;i+=4){const r=p[i],g=p[i+1],b=p[i+2];if(white&&r>245&&g>245&&b>245)p[i+3]=0;else if(fade&&p[i+3]>0&&Math.abs(r-g)<6&&Math.abs(g-b)<6&&r>120&&r<225)p[i+3]*=.3}
+      x.putImageData(d,0,0);res(c.toDataURL("image/png"))};im.src=rd.result};rd.readAsDataURL(f)})}
+async function miFace(){if(!MID||!MID.face)return;const f=$("miFaceFile").files[0];if(!f)return;
+  try{const d=await faceFromFile(f,$("miFaceFade").checked,$("miFaceWhite").checked);if(d.length>380000)return msg("miMsg","That image is too large.");
+    MID.img=d;msg("miMsg","");if(MID.tmp)delete FACES[MID.tmp];MID.tmp="__q"+(++MQ);FACES[MID.tmp]={name:"Preview",img:d,hidden:true};FIMG[MID.tmp]=await loadImg(d);
+    $("miFacePrev").src=snap({...RIG,face:MID.tmp},"item")}catch(e){msg("miMsg",e.message)}}
+$("miFaceFile").onchange=miFace;$("miFaceFade").onchange=miFace;$("miFaceWhite").onchange=miFace;
+$("miCancel").onclick=()=>{closeMI();renderMI()};
+$("miSave").onclick=async()=>{const me=users()[session()];if(!isStaff(me)||!MID)return;const id=MID.id,i=ITEM[id];
+  const name=$("miName").value.trim();if(!name)return msg("miMsg","Give the item a name.");
+  const oi=$("miOwner").value.trim().toLowerCase(),ow=oi==="bounded"?{name:"bounded"}:users()[oi];if(!ow)return msg("miMsg","That owner doesn't exist. Use a real username, or \"bounded\".");
+  let look=(OV[id]&&OV[id].look)||null;
+  if(MID.img)look={...(look||{}),img:MID.img};
+  if(MID.acc&&JSON.stringify(MID.p)!==JSON.stringify(MID.orig))look={...(look||{}),p:MID.p};
+  const o={name:name.slice(0,30),desc:$("miDesc").value.trim().slice(0,500),price:Math.max(0,Math.floor(+$("miPrice").value||0)),type:$("miType").value.trim().slice(0,20)||i.type,hidden:$("miHide").checked,by:ow.name.toLowerCase(),look};
+  const B=$("miSave");B.disabled=true;msg("miMsg","Saving…",1);
+  try{if(await saveOv(id,o)){toast("Item saved");if(MID&&MID.tmp)delete FACES[MID.tmp];MID=null;msg("miMsg","");renderMI()}}finally{B.disabled=false}};
+$("miReset").onclick=()=>{if(!MID)return;const id=MID.id;modal("Reset this item?",'<p class="muted">Name, description, price, owner and look go back to the original for everyone.</p>',"Reset",()=>{(async()=>{if(await delOv(id)){closeMI();toast("Item reset");renderMI()}})();return""})};
+$("iEdit").onclick=()=>{if(curItem){CPANE="items";openMI(curItem.id);go("create")}};
 preload().then(()=>{try{heroFill()}catch(e){}init();heroAcc()});
 </script>
 </body>
