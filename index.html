@@ -270,6 +270,19 @@ body.create-mode #app>.page{background:rgba(2,5,3,.82)}
 .timer{width:18px;height:18px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .mbox.wide{width:min(560px,94vw)}
 .feenote{font-size:.85rem;color:var(--muted);line-height:1.5;margin:0}.feenote .bad{color:#e5484d;font-weight:700}
+/* ---- access gate + owner access list ---- */
+#gate{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px;overflow:auto}
+#gate .gcard{width:min(440px,100%);background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px}
+#gate h2{margin:0 0 4px;font-size:1.5rem}#gate p{margin:0 0 14px;color:var(--muted);line-height:1.5}
+#gate input{width:100%;margin:6px 0 10px}#gate #gCode{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.05rem;letter-spacing:.08em;text-align:center}
+#gate .gsep{height:1px;background:var(--border);margin:18px 0}#gate .gerr{min-height:1.2em;font-size:.88rem;color:#e5484d;margin:2px 0 8px}#gate .gok{color:var(--accent)}
+#gate button{width:100%}
+#crBtn,#crOwn{position:relative}
+#crBtn[data-n]:not([data-n="0"])::after,#crOwn[data-n]:not([data-n="0"])::after{content:attr(data-n);position:absolute;top:6px;right:10px;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#e5484d;color:#fff;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+.accrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-top:8px;background:var(--tile)}
+.accrow.pending{border-color:#e5484d}.accrow.revoked,.accrow.used{opacity:.6}
+.accmain{display:flex;flex-direction:column;gap:3px;min-width:200px;flex:1}.acccode{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1rem;letter-spacing:.06em;color:var(--accent);user-select:all}
+.accbtns{display:flex;gap:6px;flex-wrap:wrap}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -277,6 +290,22 @@ body.create-mode #app>.page{background:rgba(2,5,3,.82)}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+
+<div id="gate"><div class="gcard">
+  <h2>Bounded</h2>
+  <p id="gChk">Checking access…</p>
+  <div id="gForm" class="hidden">
+    <p>This site is private. Enter your 16-character access code. You only need to do this once on this device.</p>
+    <input id="gCode" maxlength="19" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false">
+    <button class="primary" id="gGo">Unlock</button>
+    <div class="gerr" id="gMsg"></div>
+    <div class="gsep"></div>
+    <p style="margin-bottom:6px">Don't have a code? Ask for one and the owner will send it to you.</p>
+    <input id="gName" maxlength="80" placeholder="Your name or how to reach you (optional)">
+    <button class="ghost" id="gReq">Request a code</button>
+    <div class="gerr" id="gReqMsg"></div>
+  </div>
+</div></div>
 
 <div id="v-login" class="auth hidden">
   <div class="auth-bg"><i></i><i></i><i></i></div>
@@ -339,6 +368,11 @@ body.create-mode #app>.page{background:rgba(2,5,3,.82)}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><select id="bBadge" style="flex:1;min-width:160px;margin:0"><option value="verified">Verified</option><option value="admin">Admin</option><option value="moderator">Moderator</option><option value="contributor">Contributor</option><option value="content_creator">Content Creator</option></select><button class="primary" id="bAdd" style="margin:0;width:auto;padding:10px 20px">Give badge</button><button class="ghost" id="bRem">Remove badge</button></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><input id="bAmt" type="number" step="1" placeholder="Bonds (negative takes away)" style="flex:1;min-width:160px;margin:0"><button class="primary" id="bGive" style="margin:0;width:auto;padding:10px 20px">Give Bonds</button></div>
         <div class="err" id="bMsg" style="text-align:left"></div><div class="lb" style="margin-top:12px">People with badges</div><div class="plist" id="bList"></div>
+        <div class="lb" style="margin-top:18px;font-weight:700">Access codes</div>
+        <p class="muted" style="margin:4px 0 0">When someone requests a code it shows up here (with a red number on Create). Send them their code yourself, then press "Mark sent".</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><input id="accName" maxlength="80" placeholder="Make a code for… (name)" style="flex:1;min-width:160px;margin:0"><button class="primary" id="accMake" style="margin:0;width:auto;padding:10px 20px">Make a code</button></div>
+        <div class="err" id="accMsg" style="text-align:left"></div>
+        <div id="accList"></div>
         </div></div></div>
       <div class="cpane hidden" id="cp-face"><button class="ghost cback" data-cr="">← Create</button><h2>Face</h2><div class="panel"><div class="lb" style="font-weight:700">Upload a face</div>
       <div class="uplay"><div class="upctl"><input type="file" id="fFile" accept="image/png,image/webp"><input id="fName" maxlength="30" placeholder="Face name">
@@ -858,7 +892,7 @@ $("ibtn").onclick=async()=>{const B=$("ibtn"),it=curItem;let u=users()[session()
 /* ---- Create tab ---- */
 let CPANE=null;
 function showCpane(k){CPANE=k||null;$("chub").classList.toggle("hidden",!!CPANE);if(CPANE!=="games")GDRAFT=null;if(CPANE!=="items"&&MID)closeMI();["face","acc","own","games","items"].forEach(x=>$("cp-"+x).classList.toggle("hidden",x!==CPANE));if(CPANE==="games")renderGames();if(CPANE==="items")renderMI();if(CPANE==="acc"&&AV&&PG)try{AV.start()}catch(e){}}
-function renderCreate(u){const ow=isOwner(u),st=isStaff(u);$("crGames").classList.toggle("hidden",!st);$("crItems").classList.toggle("hidden",!st);if((CPANE==="games"||CPANE==="items")&&!st)CPANE=null;const ow0=ow;$("crOwn").classList.toggle("hidden",!ow);if(CPANE==="own"&&!ow)CPANE=null;$("badgeBox").classList.toggle("hidden",!ow);if(ow)renderBList();renderFList();renderAList();showCpane(CPANE);updFees()}
+function renderCreate(u){const ow=isOwner(u),st=isStaff(u);$("crGames").classList.toggle("hidden",!st);$("crItems").classList.toggle("hidden",!st);if((CPANE==="games"||CPANE==="items")&&!st)CPANE=null;const ow0=ow;$("crOwn").classList.toggle("hidden",!ow);if(CPANE==="own"&&!ow)CPANE=null;$("badgeBox").classList.toggle("hidden",!ow);if(ow){renderBList();accPoll(true)}renderFList();renderAList();showCpane(CPANE);updFees()}
 $("crBtn").onclick=()=>go("create");
 $("v-create").addEventListener("click",e=>{const b=e.target.closest("[data-cr]");if(b&&!b.disabled)showCpane(b.dataset.cr)});
 $("catBtn").onclick=()=>go("catalog");$("homeBtn").onclick=()=>go("home");$("profBtn").onclick=()=>$("me").onclick();
@@ -1553,7 +1587,58 @@ $("miSave").onclick=async()=>{const me=users()[session()];if(!isStaff(me)||!MID)
   try{if(await saveOv(id,o)){toast("Item saved");if(MID&&MID.tmp)delete FACES[MID.tmp];MID=null;msg("miMsg","");renderMI()}}finally{B.disabled=false}};
 $("miReset").onclick=()=>{if(!MID)return;const id=MID.id;modal("Reset this item?",'<p class="muted">Name, description, price, owner and look go back to the original for everyone.</p>',"Reset",()=>{(async()=>{if(await delOv(id)){closeMI();toast("Item reset");renderMI()}})();return""})};
 $("iEdit").onclick=()=>{if(curItem){CPANE="items";openMI(curItem.id);go("create")}};
-preload().then(()=>{try{heroFill()}catch(e){}init();heroAcc()});
+/* ===== Access-code gate (codes are made + checked on the server) ===== */
+const GATE=$("gate");
+let gateResolve;const gatePass=new Promise(r=>gateResolve=r);
+function devId(){let d=store.get("bv_dev");if(!d||d.length<32){const a=new Uint8Array(24);crypto.getRandomValues(a);d=Array.from(a,x=>x.toString(16).padStart(2,"0")).join("");store.set("bv_dev",d)}return d}
+function gateOpen(){GATE.classList.add("hidden");document.body.style.overflow="";gateResolve(true)}
+function gateForm(){$("gChk").classList.add("hidden");$("gForm").classList.remove("hidden");if(store.get("bv_req")){$("gReq").disabled=true;msg("gReqMsg","Request sent. The owner will send you your code.",true)}}
+function gateErr(e,id){const m=(e&&e.message)||"Something went wrong.";const t=/could not find the function|schema cache|does not exist/i.test(m)?"Access codes aren't set up yet. The owner needs to run the access SQL file in Supabase.":/fetch|network/i.test(m)?"Can't reach the server. Check your connection and try again.":m;gateForm();msg(id||"gMsg",t)}
+$("gCode").oninput=e=>{const v=e.target.value.replace(/[^A-Za-z0-9]/g,"").toUpperCase().slice(0,16);e.target.value=v.replace(/(.{4})(?=.)/g,"$1-")};
+$("gCode").onkeydown=e=>{if(e.key==="Enter")$("gGo").click()};
+$("gGo").onclick=async()=>{const code=$("gCode").value.replace(/[^A-Za-z0-9]/g,"").toUpperCase();
+  if(code.length!==16)return msg("gMsg","Codes are 16 letters and numbers.");
+  $("gGo").disabled=true;msg("gMsg","");
+  try{const r=await sb.rpc("redeem_access_code",{p_code:code,p_device:devId()});
+    if(r.error)throw r.error;
+    if(r.data!==true)return msg("gMsg","That code isn't valid, or it was already used.");
+    gateOpen()}
+  catch(e){gateErr(e)}finally{$("gGo").disabled=false}};
+$("gReq").onclick=async()=>{if(store.get("bv_req"))return;$("gReq").disabled=true;msg("gReqMsg","");
+  try{const r=await sb.rpc("request_access",{p_label:$("gName").value});
+    if(r.error)throw r.error;
+    store.set("bv_req",String(r.data));msg("gReqMsg","Request sent. The owner will send you your code.",true)}
+  catch(e){$("gReq").disabled=false;gateErr(e,"gReqMsg")}};
+(async()=>{try{const r=await sb.rpc("check_access",{p_device:devId()});if(r.error)throw r.error;if(r.data===true)return gateOpen();gateForm()}catch(e){gateErr(e)}})();
+
+/* ===== Owner: access requests ===== */
+let ACODES=[],ACCSEEN=null,ACCBUSY=false;
+const accFmt=c=>String(c).replace(/(.{4})(?=.)/g,"$1-");
+function accBadge(){const n=ACODES.filter(a=>a.status==="pending").length;["crBtn","crOwn"].forEach(i=>{const e=$(i);if(e)e.dataset.n=n})}
+function paintAcc(){const el=$("accList");if(!el)return;
+  const lab={pending:"Waiting. Send them this code",sent:"Sent, not used yet",used:"Used",revoked:"Revoked"};
+  el.innerHTML=ACODES.length?ACODES.map(a=>{const live=a.status==="pending"||a.status==="sent",id=esc(a.id);
+    return `<div class="accrow ${a.status}"><div class="accmain"><b>${esc(a.label||"No name given")}</b><span class="muted">${lab[a.status]||a.status} · ${esc(fmt(a.created_at))}</span>${live?`<code class="acccode">${accFmt(esc(a.code))}</code>`:""}</div><div class="accbtns">${live?`<button class="ghost" data-acc="copy" data-id="${id}">Copy</button>`:""}${a.status==="pending"?`<button class="primary" data-acc="sent" data-id="${id}" style="margin:0;width:auto;padding:8px 14px">Mark sent</button>`:""}${a.status!=="revoked"?`<button class="ghost" data-acc="revoke" data-id="${id}">Revoke</button>`:""}<button class="ghost" data-acc="delete" data-id="${id}">Delete</button></div></div>`}).join(""):'<p class="muted">No requests yet.</p>'}
+async function accPoll(force){const me=users()[session()];if(!me||!isOwner(me)||ACCBUSY)return;ACCBUSY=true;
+  try{const r=await sb.rpc("owner_list_access");if(r.error){if(force)msg("accMsg","Couldn't load codes: "+r.error.message);return}
+    ACODES=r.data||[];const ids=new Set(ACODES.filter(a=>a.status==="pending").map(a=>a.id));
+    if(ACCSEEN===null){if(ids.size)toast(ids.size===1?"1 person is waiting for an access code":ids.size+" people are waiting for access codes")}
+    else{const fresh=[...ids].filter(i=>!ACCSEEN.has(i)).length;if(fresh)toast(fresh===1?"New access request. Send them their code":fresh+" new access requests")}
+    ACCSEEN=ids;accBadge();paintAcc()}
+  finally{ACCBUSY=false}}
+setInterval(accPoll,15000);setTimeout(accPoll,4000);
+$("accList").onclick=async e=>{const b=e.target.closest("[data-acc]");if(!b)return;const id=b.dataset.id,a=ACODES.find(x=>x.id===id),act=b.dataset.acc;if(!a)return;
+  if(act==="copy"){try{await navigator.clipboard.writeText(a.code);toast("Code copied")}catch(_){toast("Select the code and copy it")}return}
+  const run=async()=>{const r=await sb.rpc("owner_access_update",{p_id:id,p_action:act});if(r.error)return toast("Failed: "+r.error.message);ACCSEEN=null;await accPoll(true);if(act==="sent")toast("Marked as sent")};
+  if(act==="revoke")return modal("Revoke this code?",'<p class="muted">If it was already used, that device is locked out again.</p>',"Revoke",()=>{run();return""});
+  if(act==="delete")return modal("Delete this entry?",'<p class="muted">This removes it from the list. If it was used, that device is locked out.</p>',"Delete",()=>{run();return""});
+  run()};
+$("accMake").onclick=async()=>{msg("accMsg","");const r=await sb.rpc("owner_make_code",{p_label:$("accName").value});
+  if(r.error)return msg("accMsg","Couldn't make a code: "+r.error.message);
+  $("accName").value="";try{await navigator.clipboard.writeText(r.data)}catch(_){}
+  ACCSEEN=null;await accPoll(true);msg("accMsg","Code made and copied: "+accFmt(r.data),true)};
+
+preload().then(async()=>{try{heroFill()}catch(e){}await gatePass;init();heroAcc()});
 </script>
 </body>
 </html>
